@@ -1,0 +1,14 @@
+export type Exercise = {
+  id: string
+  name: string
+  sets: number
+  reps: number
+  weight: number
+}
+
+export type Workout = {
+  id: string
+  date: string // ISO (2026-04-04)
+  exercises: Exercise[]
+  completedExerciseIds: string[]
+}
