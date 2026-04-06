@@ -105,43 +105,6 @@ function getOrCreateWorkout(date: string): Workout | null {
   return workout
 }
 
-export type DayStatus = {
-  date: string
-  label: string
-  totalExercises: number
-  completedExercises: number
-}
-
-export const getWorkoutHistory = createServerFn({ method: 'GET' })
-  .inputValidator((data: { year: number; month: number }) => data)
-  .handler(async ({ data: { year, month } }) => {
-    await new Promise((r) => setTimeout(r, 200))
-
-    const daysInMonth = new Date(year, month, 0).getDate()
-    const days: DayStatus[] = []
-
-    for (let day = 1; day <= daysInMonth; day++) {
-      const date = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
-      const dayOfWeek = new Date(date).getDay()
-      const program = PROGRAMS[dayOfWeek]
-
-      if (!program) {
-        days.push({ date, label: 'Отдых', totalExercises: 0, completedExercises: 0 })
-        continue
-      }
-
-      const cached = workoutCache.get(date)
-      days.push({
-        date,
-        label: program.label,
-        totalExercises: program.exercises.length,
-        completedExercises: cached ? cached.completedExerciseIds.length : 0,
-      })
-    }
-
-    return days
-  })
-
 export const getWorkout = createServerFn({ method: 'GET' })
   .inputValidator((date: string) => date)
   .handler(async ({ data: date }) => {

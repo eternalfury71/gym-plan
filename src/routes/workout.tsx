@@ -45,7 +45,6 @@ function WorkoutPage() {
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey })
-      queryClient.invalidateQueries({ queryKey: ['workout-history'] })
     },
   })
 

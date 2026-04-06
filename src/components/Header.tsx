@@ -23,13 +23,6 @@ export default function Header() {
           >
             Тренировка
           </Link>
-          <Link
-            to="/history"
-            className="nav-link"
-            activeProps={{ className: 'nav-link is-active' }}
-          >
-            История
-          </Link>
         </div>
 
         <div className="ml-auto">
