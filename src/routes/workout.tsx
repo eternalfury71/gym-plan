@@ -6,48 +6,43 @@ import { Checkbox } from '#/components/ui/checkbox'
 import { Progress, ProgressLabel, ProgressValue } from '#/components/ui/progress'
 import type { Workout } from '#/types/workout'
 
-function getTodayISO() {
-  return new Date().toLocaleDateString('en-CA');
-}
+const today = () => new Date().toLocaleDateString('en-CA')
 
 export const Route = createFileRoute('/workout')({ component: WorkoutPage })
 
 function WorkoutPage() {
-  const today = getTodayISO()
-  const queryClient = useQueryClient()
-  const queryKey = ['workout', today]
+  const date = today()
+  const qc = useQueryClient()
+  const key = ['workout', date]
 
   const { data: workout, isLoading, isError } = useQuery({
-    queryKey,
-    queryFn: () => getWorkout({ data: today }),
+    queryKey: key,
+    queryFn: () => getWorkout({ data: date }),
   })
 
-  const mutation = useMutation({
-    mutationFn: (exerciseId: string) =>
-      toggleExercise({ data: { date: today, exerciseId } }),
+  const toggle = useMutation({
+    mutationFn: (exerciseId: string) => toggleExercise({ data: { date, exerciseId } }),
     onMutate: async (exerciseId) => {
-      await queryClient.cancelQueries({ queryKey })
-      const previous = queryClient.getQueryData<Workout | null>(queryKey)
+      await qc.cancelQueries({ queryKey: key })
+      const prev = qc.getQueryData<Workout | null>(key)
 
-      queryClient.setQueryData<Workout | null>(queryKey, (old) => {
+      qc.setQueryData<Workout | null>(key, (old) => {
         if (!old) return old
-
-        const completed = old.completedExerciseIds.includes(exerciseId)
-          ? old.completedExerciseIds.filter((id) => id !== exerciseId)
-          : [...old.completedExerciseIds, exerciseId]
-        return { ...old, completedExerciseIds: completed }
+        const ids = old.completedExerciseIds
+        return {
+          ...old,
+          completedExerciseIds: ids.includes(exerciseId)
+            ? ids.filter((id) => id !== exerciseId)
+            : [...ids, exerciseId],
+        }
       })
 
-      return { previous }
+      return { prev }
     },
-    onError: (_err, _exerciseId, context) => {
-      if (context?.previous !== undefined) {
-        queryClient.setQueryData(queryKey, context.previous)
-      }
+    onError: (_e, _id, ctx) => {
+      if (ctx?.prev !== undefined) qc.setQueryData(key, ctx.prev)
     },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey })
-    },
+    onSettled: () => qc.invalidateQueries({ queryKey: key }),
   })
 
   if (isLoading) {
@@ -68,55 +63,51 @@ function WorkoutPage() {
         <Card>
           <CardHeader className="text-center">
             <CardTitle className="text-xl">День отдыха</CardTitle>
-            <CardDescription>{today}</CardDescription>
+            <CardDescription>{date}</CardDescription>
           </CardHeader>
           <CardContent className="text-center text-muted-foreground">
-            Сегодня тренировка не запланирована. Отдыхай и восстанавливайся!
+            Отдых
           </CardContent>
         </Card>
       </main>
     )
   }
 
-  const completedCount = workout.completedExerciseIds.length
-  const totalCount = workout.exercises.length
-  const progressPercent = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0
-  const allDone = completedCount === totalCount && totalCount > 0
+  const done = workout.completedExerciseIds
+  const total = workout.exercises.length
+  const percent = total ? Math.round((done.length / total) * 100) : 0
+  const allDone = total > 0 && done.length === total
 
   return (
     <main className="page-wrap px-4 pb-8 pt-14">
       <Card>
         <CardHeader>
           <CardTitle className="text-xl">Сегодняшняя тренировка</CardTitle>
-          <CardDescription>{today}</CardDescription>
+          <CardDescription>{date}</CardDescription>
         </CardHeader>
 
         <CardContent>
-          <Progress value={progressPercent}>
+          <Progress value={percent}>
             <ProgressLabel>Прогресс</ProgressLabel>
-            <ProgressValue>{() => `${completedCount} / ${totalCount}`}</ProgressValue>
+            <ProgressValue>{() => `${done.length} / ${total}`}</ProgressValue>
           </Progress>
         </CardContent>
 
         <CardContent className="space-y-2">
-          {workout.exercises.map((exercise) => {
-            const done = workout.completedExerciseIds.includes(exercise.id)
+          {workout.exercises.map((ex) => {
+            const checked = done.includes(ex.id)
             return (
               <label
-                key={exercise.id}
+                key={ex.id}
                 className="flex cursor-pointer items-center gap-3 rounded-lg border border-border px-4 py-3 transition-colors hover:bg-muted/50"
               >
-                <Checkbox
-                  checked={done}
-                  onCheckedChange={() => mutation.mutate(exercise.id)}
-                />
+                <Checkbox checked={checked} onCheckedChange={() => toggle.mutate(ex.id)} />
                 <div className="flex-1 min-w-0">
-                  <p className={`text-sm font-medium leading-tight ${done ? 'text-muted-foreground line-through' : ''}`}>
-                    {exercise.name}
+                  <p className={`text-sm font-medium leading-tight ${checked ? 'text-muted-foreground line-through' : ''}`}>
+                    {ex.name}
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    {exercise.sets} × {exercise.reps}
-                    {exercise.weight > 0 ? ` · ${exercise.weight} кг` : ''}
+                    {ex.sets} × {ex.reps}{ex.weight > 0 && ` · ${ex.weight} кг`}
                   </p>
                 </div>
               </label>

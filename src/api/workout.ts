@@ -1,9 +1,6 @@
 import { createServerFn } from '@tanstack/react-start'
 import type { Exercise, Workout } from '#/types/workout'
 
-// Программы по дням недели (0=Вс, 1=Пн, ..., 6=Сб)
-// Пн — грудь + трицепс, Вт — спина + бицепс, Ср — ноги,
-// Чт — плечи + пресс, Пт — всё тело, Сб/Вс — отдых
 const PROGRAMS: Record<number, { label: string; exercises: Omit<Exercise, 'id'>[] }> = {
   1: {
     label: 'Грудь + Трицепс',
@@ -60,7 +57,7 @@ const PROGRAMS: Record<number, { label: string; exercises: Omit<Exercise, 'id'>[
 function generateWorkout(date: string): Workout | null {
   const dayOfWeek = new Date(date).getDay()
   const program = PROGRAMS[dayOfWeek]
-  if (!program) return null // Сб/Вс — день отдыха
+  if (!program) return null // Сб/Вс — отдых
 
   return {
     id: `w-${date}`,
@@ -73,7 +70,6 @@ function generateWorkout(date: string): Workout | null {
   }
 }
 
-// In-memory кэш сгенерированных тренировок (сохраняет completedExerciseIds между запросами)
 const workoutCache = new Map<string, Workout>()
 
 function getOrCreateWorkout(date: string): Workout | null {
