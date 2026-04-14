@@ -7,8 +7,7 @@ import { Progress, ProgressLabel, ProgressValue } from '#/components/ui/progress
 import type { Workout } from '#/types/workout'
 
 function getTodayISO() {
-  const d = new Date()
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+  return new Date().toLocaleDateString('en-CA');
 }
 
 export const Route = createFileRoute('/workout')({ component: WorkoutPage })
@@ -16,7 +15,7 @@ export const Route = createFileRoute('/workout')({ component: WorkoutPage })
 function WorkoutPage() {
   const today = getTodayISO()
   const queryClient = useQueryClient()
-  const queryKey = ['workout', today] as const
+  const queryKey = ['workout', today]
 
   const { data: workout, isLoading, isError } = useQuery({
     queryKey,
@@ -32,6 +31,7 @@ function WorkoutPage() {
 
       queryClient.setQueryData<Workout | null>(queryKey, (old) => {
         if (!old) return old
+
         const completed = old.completedExerciseIds.includes(exerciseId)
           ? old.completedExerciseIds.filter((id) => id !== exerciseId)
           : [...old.completedExerciseIds, exerciseId]
@@ -104,7 +104,7 @@ function WorkoutPage() {
             return (
               <label
                 key={exercise.id}
-                className="flex cursor-pointer items-center gap-3 rounded-lg border border-border px-4 py-3 transition-colors hover:bg-muted/50 has-[:checked]:bg-muted/80"
+                className="flex cursor-pointer items-center gap-3 rounded-lg border border-border px-4 py-3 transition-colors hover:bg-muted/50"
               >
                 <Checkbox
                   checked={done}

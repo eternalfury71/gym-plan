@@ -55,26 +55,6 @@ const PROGRAMS: Record<number, { label: string; exercises: Omit<Exercise, 'id'>[
       { name: 'Жим гантелей стоя', sets: 3, reps: 10, weight: 14 },
     ],
   },
-  6: {
-    label: 'Всё тело',
-    exercises: [
-      { name: 'Становая тяга', sets: 4, reps: 6, weight: 80 },
-      { name: 'Жим лёжа', sets: 3, reps: 8, weight: 55 },
-      { name: 'Подтягивания', sets: 3, reps: 8, weight: 0 },
-      { name: 'Приседания со штангой', sets: 3, reps: 8, weight: 70 },
-      { name: 'Жим гантелей стоя', sets: 3, reps: 10, weight: 14 },
-    ],
-  },
-  7: {
-    label: 'Всё тело',
-    exercises: [
-      { name: 'Становая тяга', sets: 4, reps: 6, weight: 80 },
-      { name: 'Жим лёжа', sets: 3, reps: 8, weight: 55 },
-      { name: 'Подтягивания', sets: 3, reps: 8, weight: 0 },
-      { name: 'Приседания со штангой', sets: 3, reps: 8, weight: 70 },
-      { name: 'Жим гантелей стоя', sets: 3, reps: 10, weight: 14 },
-    ],
-  },
 }
 
 function generateWorkout(date: string): Workout | null {
@@ -109,6 +89,7 @@ export const getWorkout = createServerFn({ method: 'GET' })
   .inputValidator((date: string) => date)
   .handler(async ({ data: date }) => {
     await new Promise((r) => setTimeout(r, 300))
+    
     return getOrCreateWorkout(date)
   })
 

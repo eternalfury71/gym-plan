@@ -8,7 +8,7 @@ export type Exercise = {
 
 export type Workout = {
   id: string
-  date: string // ISO (2026-04-04)
+  date: string
   exercises: Exercise[]
   completedExerciseIds: string[]
 }
